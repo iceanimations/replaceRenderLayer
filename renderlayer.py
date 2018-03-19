@@ -2,6 +2,10 @@ import nuke
 import os
 import re
 import functools
+import logging
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 def normpath(path):
@@ -84,13 +88,19 @@ def range_exists(path, start, end, by=1, match_pattern=re.compile('#+'),
     return criterion(existence)
 
 
-def replace_render_layers(
-        maps, main_dir=None, mode='selected', nodes=None):
+def replace_render_layers(maps, main_dir=None, mode='selected',
+                          input_nodes=None, ignore_errors=False):
     nodes, bad_nodes = [], []
-
     maps = {k.lower(): v for k, v in maps.items()}
 
-    for node in _select_iter_func(mode, nodes)():
+    read_nodes = list(_select_iter_func(mode, input_nodes)())
+
+    LOGGER.info('Start: ReplaceRenderLayers')
+    LOGGER.info('Max: %d' % len(read_nodes))
+
+    for idx, node in enumerate(read_nodes):
+        LOGGER.info('Progress: ReplaceRenderLayers: %d of %d' % (
+            idx, len(read_nodes)))
         path = node.knob('file').getValue()
 
         try:
@@ -110,14 +120,21 @@ def replace_render_layers(
             new_path = os.path.join(new_rl_dir, passname_new, filename_new)
             new_path = new_path.replace('\\', '/')
 
-            if range_exists(new_path, node.knob('first').getValue(),
-                            node.knob('last').getValue()):
+            if ignore_errors or range_exists(
+                    new_path, node.knob('first').getValue(),
+                    node.knob('last').getValue()):
                 node.knob('file').setValue(new_path)
                 nodes.append(nodes)
+
+                LOGGER.info('Remapping %s' % node.name())
 
             else:
                 node.knob('tile_color').setValue(0xff000000)
                 bad_nodes.append(node)
+
+                LOGGER.warning('Cannot Remap due to no path %s' % node.name())
+
+    LOGGER.info('Done')
 
     return nodes, bad_nodes
 
