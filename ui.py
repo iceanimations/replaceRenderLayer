@@ -2,12 +2,12 @@ import os
 import functools
 import logging
 
-from PyQt4 import uic
-from PyQt4 import QtGui as gui
-from PyQt4 import QtCore as core
+from Qt.QtWidgets import QWidget, QTreeWidgetItem, QComboBox
+from Qt.QtCompat import loadUi
+import Qt.QtCore as core
 
 
-from cui import QTextLogHandler
+from utilities.cui import QTextLogHandler
 
 
 from . import renderlayer
@@ -16,14 +16,11 @@ from . import renderlayer
 UI_FILE = os.path.join(os.path.dirname(__file__), 'ui.ui')
 
 
-RL_FORM, RL_BASE = uic.loadUiType(UI_FILE)
-
-
-class RenderLayerWindow(RL_FORM, RL_BASE):
+class RenderLayerWindow(QWidget):
 
     def __init__(self):
         super(RenderLayerWindow, self).__init__()
-        self.setupUi(self)
+        loadUi(UI_FILE, self)
 
         self.okButton.clicked.connect(self.accept)
         self.cancelButton.clicked.connect(self.reject)
@@ -56,7 +53,7 @@ class RenderLayerWindow(RL_FORM, RL_BASE):
         top_idx = 0
         for main_dir, rls in render_layers.items():
 
-            dir_item = gui.QTreeWidgetItem()
+            dir_item = QTreeWidgetItem()
             self.treeWidget.addTopLevelItem(dir_item)
             dir_item.setText(0, os.path.basename(main_dir))
             dir_item.setExpanded(True)
@@ -68,7 +65,7 @@ class RenderLayerWindow(RL_FORM, RL_BASE):
                 _dir, _rl, _ = renderlayer.split_path_until(path)
 
                 # add current render layer name
-                rl_item = gui.QTreeWidgetItem()
+                rl_item = QTreeWidgetItem()
                 rl_item.setCheckState(0, 0)
                 rl_item.setFlags(
                         rl_item.flags() & ~
@@ -83,7 +80,7 @@ class RenderLayerWindow(RL_FORM, RL_BASE):
                 dir_item.addChild(rl_item)
 
                 # Add Combo Box set up its signals and populate
-                box = gui.QComboBox()
+                box = QComboBox()
                 box.activated[int].connect(functools.partial(
                     self.combo_change, top_idx, one_idx))
                 all_layers = renderlayer.get_render_layers_in_path(path)
