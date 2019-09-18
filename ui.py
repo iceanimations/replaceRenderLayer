@@ -2,7 +2,7 @@ import os
 import functools
 import logging
 
-from Qt.QtWidgets import QWidget, QTreeWidgetItem, QComboBox
+from Qt.QtWidgets import QWidget, QTreeWidgetItem, QComboBox, QApplication
 from Qt.QtCompat import loadUi
 import Qt.QtCore as core
 
@@ -18,7 +18,7 @@ UI_FILE = os.path.join(os.path.dirname(__file__), 'ui.ui')
 
 class RenderLayerWindow(QWidget):
 
-    def __init__(self):
+    def __init__(self, parent=QApplication.activeWindow()):
         super(RenderLayerWindow, self).__init__()
         loadUi(UI_FILE, self)
 
